@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+artifacts/
+*.dll
+*.nupkg
+*.snupkg
+.env
+*.keystore
+*.jks
+!BunnyLoader.ModSdk/build/
+!BunnyLoader.ModSdk/build/*

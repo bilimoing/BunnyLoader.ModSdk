@@ -31,18 +31,19 @@ public sealed class PackMod : Microsoft.Build.Utilities.Task
             string RequiredString(string key) => json.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString())
                 ? value.GetString()! : throw new InvalidDataException($"manifest.json: missing or invalid '{key}'.");
             var id = RequiredString("id");
-            if (!Regex.IsMatch(id, "^[a-z][a-z0-9_]{0,63}$"))
-                throw new InvalidDataException("manifest.json: id must match ^[a-z][a-z0-9_]{0,63}$.");
+            if (!Regex.IsMatch(id, "^[A-Za-z][A-Za-z0-9_]{0,63}$"))
+                throw new InvalidDataException("manifest.json: id must match ^[A-Za-z][A-Za-z0-9_]{0,63}$.");
             var version = RequiredString("version");
             if (!Regex.IsMatch(version, "^[0-9A-Za-z][0-9A-Za-z.+_-]{0,79}$"))
                 throw new InvalidDataException("manifest.json: version contains unsafe filename characters.");
             RequiredString("name");
-            if (!Guid.TryParseExact(RequiredString("uid"), "D", out _))
-                throw new InvalidDataException("manifest.json: uid must be a UUID in D format.");
+            var uid = RequiredString("uid");
+            if (!Guid.TryParseExact(uid, "D", out var parsedUid) || uid != parsedUid.ToString("D"))
+                throw new InvalidDataException("manifest.json: uid must be a canonical lowercase UUID in D format.");
             if (RequiredString("type") != "mod" || json.GetProperty("blVersion").GetInt32() != 3)
                 throw new InvalidDataException("This SDK packages BL Editor C# format 3 mods (type=mod, blVersion=3).");
-            if (!File.Exists(Path.Combine(root, id + ".cs")))
-                throw new InvalidDataException($"Missing root Mod entry file: {id}.cs.");
+            if (!Directory.EnumerateFiles(root).Any(file => Path.GetFileName(file).Equals(id + ".cs", StringComparison.Ordinal)))
+                throw new InvalidDataException($"Missing root Mod entry file with exact filename casing: {id}.cs.");
             Directory.CreateDirectory(output);
             var destination = Path.Combine(output, $"{id}-{version}.bl");
             temporary = Path.Combine(output, $".{Guid.NewGuid():N}.tmp");
@@ -53,6 +54,11 @@ public sealed class PackMod : Microsoft.Build.Utilities.Task
                     var absolute = Path.GetFullPath(file);
                     if (absolute.StartsWith(output + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) continue;
                     var relative = Path.GetRelativePath(root, file).Replace('\\', '/');
+                    if (relative.Equals(id + ".dll", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.LogWarning("Excluding root entry assembly '{0}' from source package: Bunny Loader would load it instead of compiling {1}.cs.", relative, id);
+                        continue;
+                    }
                     var entry = zip.CreateEntry(relative, CompressionLevel.Optimal);
                     entry.LastWriteTime = new DateTimeOffset(1980, 1, 1, 0, 0, 0, TimeSpan.Zero);
                     using var input = File.OpenRead(file);

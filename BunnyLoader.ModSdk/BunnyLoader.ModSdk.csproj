@@ -2,10 +2,15 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>BunnyLoader.ModSdk</PackageId>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
+    <PackageProjectUrl>https://github.com/bilimoing/BunnyLoader.ModSdk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/bilimoing/BunnyLoader.ModSdk.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseFile>PACKAGE-LICENSE.txt</PackageLicenseFile>
     <Authors>BL Editor contributors</Authors>
     <Description>Self-contained compile-time BunnyLoader API and deterministic format 3 source packaging for C# mods.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>Updated API to Bunny-Loader 2a15df5a, including ModSubworld and SubworldLoader. Align source packaging with loader ID and UUID rules and omit stale root entry DLLs.</PackageReleaseNotes>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <!-- Tasks live outside lib; ref-only API intentionally has no runtime lib counterpart. -->
     <NoWarn>$(NoWarn);NU5100;NU5128;NU5131</NoWarn>
@@ -17,6 +22,8 @@
     <ProjectReference Include="../BunnyLoader.Build.Tasks/BunnyLoader.Build.Tasks.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <None Include="build/*" Pack="true" PackagePath="build/" />
     <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="../PACKAGE-LICENSE.txt" Pack="true" PackagePath="/" />
     <None Include="$(BunnyLoaderTasksAssembly)" Pack="true" PackagePath="tasks/net10.0/" />
   </ItemGroup>
   <UsingTask TaskName="BunnyLoader.Build.ValidateApi" AssemblyFile="$(BunnyLoaderTasksAssembly)" />
